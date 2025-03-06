@@ -3,6 +3,18 @@ import User from '@/../models/User';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 
+// Configurar CORS
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*', // Permitir cualquier origen (AJUSTAR EN PRODUCCIÓN)
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+// Manejar solicitudes OPTIONS para CORS
+export function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders, status: 200 });
+}
+
 export async function POST(request) {
   console.log('📩 Recibiendo solicitud POST en /api/register');
   await dbConnect();
@@ -15,7 +27,10 @@ export async function POST(request) {
     const existingUser = await User.findOne({ username }).lean();
     if (existingUser) {
       console.log('❌ Usuario ya existe');
-      return NextResponse.json({ success: false, error: 'Username already exists' }, { status: 400 });
+      return NextResponse.json(
+        { success: false, error: 'Username already exists' },
+        { status: 400, headers: corsHeaders }
+      );
     }
 
     console.log('🔑 Hasheando contraseña...');
@@ -27,11 +42,13 @@ export async function POST(request) {
     console.log('✅ Usuario creado:', newUser._id);
     return NextResponse.json(
       { success: true, data: { id: newUser._id, username: newUser.username } },
-      { status: 201 }
+      { status: 201, headers: corsHeaders }
     );
   } catch (error) {
     console.error('❌ Error en el registro:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500, headers: corsHeaders }
+    );
   }
 }
-
