@@ -7,7 +7,7 @@ export async function POST(request) {
 
   // Aplicar timeout manual
   const timeout = new Promise((_, reject) =>
-    setTimeout(() => reject(new Error("⏳ Tiempo de ejecución excedido")), 9000)
+    setTimeout(() => reject(new Error("⏳ Tiempo de ejecución excedido")), 30000)
   );
 
   return Promise.race([handleRequest(request), timeout]);
