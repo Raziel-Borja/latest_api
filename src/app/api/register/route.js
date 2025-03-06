@@ -1,6 +1,7 @@
 import dbConnect from '@/../lib/db';
 import User from '@/../models/User';
 import { NextResponse } from 'next/server';
+import bcrypt from 'bcrypt';
 
 export async function POST(request) {
   console.log('📩 Recibiendo solicitud POST en /api/register');
