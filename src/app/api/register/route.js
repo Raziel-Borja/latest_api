@@ -3,44 +3,46 @@ import User from '@/../models/User';
 import { NextResponse } from 'next/server';
 
 export async function POST(request) {
+  console.log("📩 Recibiendo solicitud POST en /api/register");
+
+  // Aplicar timeout manual
+  const timeout = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error("⏳ Tiempo de ejecución excedido")), 9000)
+  );
+
+  return Promise.race([handleRequest(request), timeout]);
+}
+
+async function handleRequest(request) {
   await dbConnect();
-
-  // Configurar los encabezados CORS
-  const headers = {
-    'Access-Control-Allow-Origin': '*', // Permite solicitudes desde cualquier origen
-    'Access-Control-Allow-Methods': 'POST, OPTIONS', // Métodos permitidos
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization', // Encabezados permitidos
-  };
-
-  // Manejar solicitudes OPTIONS (preflight)
-  if (request.method === 'OPTIONS') {
-    return NextResponse.json({}, { headers, status: 200 });
-  }
+  console.log("🔗 Base de datos conectada");
 
   try {
     const { username, password } = await request.json();
+    console.log("👤 Datos recibidos:", username);
 
-    // Verificar si el usuario ya existe
     const existingUser = await User.findOne({ username });
     if (existingUser) {
+      console.log("⚠️ Usuario ya existe");
       return NextResponse.json(
         { success: false, error: 'Username already exists' },
-        { headers, status: 400 }
+        { status: 400 }
       );
     }
 
-    // Crear un nuevo usuario
     const user = new User({ username, password });
     await user.save();
+    console.log("✅ Usuario creado:", user._id);
 
     return NextResponse.json(
       { success: true, data: { id: user._id, username: user.username } },
-      { headers, status: 201 }
+      { status: 201 }
     );
   } catch (error) {
+    console.error("❌ Error en /api/register:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { headers, status: 500 }
+      { status: 500 }
     );
   }
 }
