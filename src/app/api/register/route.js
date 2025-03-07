@@ -36,7 +36,7 @@ export async function POST(request) {
     }
 
     console.log('🔑 Hasheando contraseña...');
-    const hashedPassword = await bcrypt.hashSync(password, saltRounds);
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
     
     console.log('📝 Guardando usuario en MongoDB...');
     const newUser = await User.create({ username, password: hashedPassword });

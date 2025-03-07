@@ -23,6 +23,15 @@ export async function POST(request) {
     const { username, password } = await request.json();
     console.log('🔍 Buscando usuario:', username);
 
+    // Verificar que se haya enviado una contraseña
+    if (!password || typeof password !== 'string' || password.trim() === '') {
+      console.log('❌ Contraseña no válida');
+      return NextResponse.json(
+        { success: false, error: 'Invalid password' },
+        { status: 400, headers: corsHeaders }
+      );
+    }
+
     const user = await User.findOne({ username });
 
     if (!user) {
