@@ -3,6 +3,8 @@ import User from '@/../models/User';
 import { NextResponse } from 'next/server';
 import bcrypt from 'bcrypt';
 
+const saltRounds = 10; 
+
 // Configurar CORS
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*', // Permitir cualquier origen (AJUSTAR EN PRODUCCIÓN)
@@ -34,7 +36,7 @@ export async function POST(request) {
     }
 
     console.log('🔑 Hasheando contraseña...');
-    const hashedPassword = await bcrypt.hash(password, 10);
+    const hashedPassword = await bcrypt.hashSync(password, saltRounds);
     
     console.log('📝 Guardando usuario en MongoDB...');
     const newUser = await User.create({ username, password: hashedPassword });
