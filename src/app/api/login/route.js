@@ -32,6 +32,7 @@ export async function POST(request) {
       );
     }
 
+    // Buscar el usuario en la base de datos
     const user = await User.findOne({ username });
 
     if (!user) {
@@ -44,6 +45,7 @@ export async function POST(request) {
 
     console.log('🔑 Usuario encontrado en DB:', user);
 
+    // Verificar que el usuario tenga una contraseña almacenada
     if (!user.password) {
       console.log('⚠️ No hay contraseña en el registro del usuario');
       return NextResponse.json(
@@ -56,6 +58,7 @@ export async function POST(request) {
     console.log('👉 Hash en DB:', user.password);
     console.log('👉 Contraseña ingresada:', password);
 
+    // Comparar la contraseña ingresada con el hash almacenado
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
@@ -67,6 +70,8 @@ export async function POST(request) {
     }
 
     console.log('✅ Contraseña correcta, generando token...');
+
+    // Generar un token JWT
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
       expiresIn: '1h',
     });
