@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 import { NextResponse } from 'next/server';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // ⚠️ AJUSTA ESTO EN PRODUCCIÓN
+  'Access-Control-Allow-Origin': '*', // ⚠️ Ajusta esto en producción
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -54,6 +54,15 @@ export async function POST(request) {
     console.log('🔑 Verificando contraseña...');
     console.log('👉 Hash almacenado en DB:', user.password);
     console.log('👉 Contraseña ingresada:', password);
+
+    // 🔥 Asegurar que `password` es un string antes de compararlo
+    if (typeof user.password !== 'string') {
+      console.log('⚠️ El hash de la contraseña no es un string');
+      return NextResponse.json(
+        { success: false, error: 'Invalid password format' },
+        { status: 500, headers: corsHeaders }
+      );
+    }
 
     const isMatch = await bcrypt.compare(password, user.password);
     console.log('🔍 Resultado de bcrypt.compare:', isMatch);
