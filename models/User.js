@@ -1,72 +1,21 @@
-export async function POST(request) {
-  console.log('📩 Recibiendo solicitud POST en /api/login');
-  await dbConnect();
-  console.log('✅ Conectado a MongoDB, procesando datos...');
+import mongoose from 'mongoose';
+import bcrypt from 'bcrypt'; // Usa 'bcrypt' en lugar de 'bcryptjs'
 
-  try {
-    const { username, password } = await request.json();
-    console.log('🔍 Buscando usuario:', username);
+const userSchema = new mongoose.Schema({
+  username: { type: String, required: true, unique: true },
+  password: { type: String, required: true },
+  kills: { type: Number, default: 0 },
+});
 
-    if (!password || typeof password !== 'string' || password.trim() === '') {
-      console.log('❌ Contraseña no válida');
-      return NextResponse.json(
-        { success: false, error: 'Invalid password' },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    const user = await User.findOne({ username });
-
-    if (!user) {
-      console.log('❌ Usuario no encontrado:', username);
-      return NextResponse.json(
-        { success: false, error: 'User not found' },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    console.log('🔑 Usuario encontrado en DB:', user);
-
-    if (!user.password) {
-      console.log('⚠️ No hay contraseña en el registro del usuario');
-      return NextResponse.json(
-        { success: false, error: 'No password found for this user' },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    console.log('🔑 Verificando contraseña...');
-    console.log('👉 Hash en DB:', user.password);
-    console.log('👉 Contraseña ingresada:', password);
-
-    const isMatch = await bcrypt.compare(password, user.password);
-
-    if (!isMatch) {
-      console.log('❌ Contraseña incorrecta');
-      return NextResponse.json(
-        { success: false, error: 'Invalid credentials' },
-        { status: 400, headers: corsHeaders }
-      );
-    }
-
-    console.log('✅ Contraseña correcta, generando token...');
-
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: '1h',
-    });
-
-    console.log('✅ Usuario autenticado:', user._id);
-
-    // 📌 🔴 MODIFICADO: Se agregó userId y username a la respuesta
-    return NextResponse.json(
-      { success: true, token, userId: user._id, username: user.username },
-      { status: 200, headers: corsHeaders }
-    );
-  } catch (error) {
-    console.error('❌ Error en el login:', error);
-    return NextResponse.json(
-      { success: false, error: 'Internal server error' },
-      { status: 500, headers: corsHeaders }
-    );
+userSchema.pre('save', async function (next) {
+  if (this.isModified('password')) {
+    this.password = await bcrypt.hash(this.password, 8);
   }
-}
+  next();
+});
+
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return bcrypt.compare(candidatePassword, this.password);
+};
+
+export default mongoose.models.User || mongoose.model('User', userSchema);
