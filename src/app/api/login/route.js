@@ -1,11 +1,11 @@
 import dbConnect from '@/../lib/db';
 import User from '@/../models/User';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
+import argon2 from 'argon2'; // ✅ Cambiamos bcrypt por argon2
 import { NextResponse } from 'next/server';
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // ⚠️ Ajusta esto en producción
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
@@ -51,21 +51,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('🔑 Verificando contraseña...');
+    console.log('🔑 Verificando contraseña con Argon2...');
     console.log('👉 Hash almacenado en DB:', user.password);
     console.log('👉 Contraseña ingresada:', password);
 
-    // 🔥 Asegurar que `password` es un string antes de compararlo
-    if (typeof user.password !== 'string') {
-      console.log('⚠️ El hash de la contraseña no es un string');
-      return NextResponse.json(
-        { success: false, error: 'Invalid password format' },
-        { status: 500, headers: corsHeaders }
-      );
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    console.log('🔍 Resultado de bcrypt.compare:', isMatch);
+    const isMatch = await argon2.verify(user.password, password); // ✅ Comparar con Argon2
+    console.log('🔍 Resultado de argon2.verify:', isMatch);
 
     if (!isMatch) {
       console.log('❌ Contraseña incorrecta');

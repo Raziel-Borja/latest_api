@@ -1,18 +1,15 @@
 import dbConnect from '@/../lib/db';
 import User from '@/../models/User';
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcrypt';
-
-const saltRounds = 10; 
+import argon2 from 'argon2'; // ✅ Usamos argon2
 
 // Configurar CORS
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*', // Permitir cualquier origen (AJUSTAR EN PRODUCCIÓN)
+  'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type, Authorization',
 };
 
-// Manejar solicitudes OPTIONS para CORS
 export function OPTIONS() {
   return NextResponse.json({}, { headers: corsHeaders, status: 200 });
 }
@@ -35,10 +32,9 @@ export async function POST(request) {
       );
     }
 
-    console.log('🔑 Contraseña antes del hash:', password);
-    const hashedPassword = await bcrypt.hash(password, saltRounds);
-    console.log('✅ Contraseña hasheada:', hashedPassword);
-    
+    console.log('🔑 Hasheando contraseña con Argon2...');
+    const hashedPassword = await argon2.hash(password); // ✅ Hashear con Argon2
+
     console.log('📝 Guardando usuario en MongoDB...');
     const newUser = await User.create({ username, password: hashedPassword });
 
