@@ -35,13 +35,14 @@ export async function POST(request) {
       );
     }
 
-    console.log('🔑 Hasheando contraseña...');
+    console.log('🔑 Contraseña antes del hash:', password);
     const hashedPassword = await bcrypt.hash(password, saltRounds);
+    console.log('✅ Contraseña hasheada:', hashedPassword);
     
     console.log('📝 Guardando usuario en MongoDB...');
     const newUser = await User.create({ username, password: hashedPassword });
 
-    console.log('✅ Usuario creado:', newUser._id);
+    console.log('✅ Usuario creado con ID:', newUser._id);
     return NextResponse.json(
       { success: true, data: { id: newUser._id, username: newUser.username } },
       { status: 201, headers: corsHeaders }

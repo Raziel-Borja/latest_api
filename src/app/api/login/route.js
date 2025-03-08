@@ -4,6 +4,16 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
 import { NextResponse } from 'next/server';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*', // ⚠️ AJUSTA ESTO EN PRODUCCIÓN
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+};
+
+export function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders, status: 200 });
+}
+
 export async function POST(request) {
   console.log('📩 Recibiendo solicitud POST en /api/login');
   await dbConnect();
@@ -42,10 +52,11 @@ export async function POST(request) {
     }
 
     console.log('🔑 Verificando contraseña...');
-    console.log('👉 Hash en DB:', user.password);
+    console.log('👉 Hash almacenado en DB:', user.password);
     console.log('👉 Contraseña ingresada:', password);
 
     const isMatch = await bcrypt.compare(password, user.password);
+    console.log('🔍 Resultado de bcrypt.compare:', isMatch);
 
     if (!isMatch) {
       console.log('❌ Contraseña incorrecta');
@@ -63,7 +74,6 @@ export async function POST(request) {
 
     console.log('✅ Usuario autenticado:', user._id);
 
-    // 📌 🔴 MODIFICADO: Se agregó userId y username a la respuesta
     return NextResponse.json(
       { success: true, token, userId: user._id, username: user.username },
       { status: 200, headers: corsHeaders }
